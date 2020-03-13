@@ -31,14 +31,10 @@ class Model(tf.Module):
         # - multiply the result by `self._W2` and then add `self._b2`
         # - finally apply `tf.nn.softmax` and return the result
         inputs = tf.reshape(inputs, [inputs.shape[0], -1])
-        # print(inputs.shape, self._W1.shape, self._b1.shape)
         inputs = inputs @ self._W1 + self._b1
         inputs = tf.nn.tanh(inputs)
-        # print(inputs.shape, self._W2.shape, self._b2.shape)
         inputs = inputs @ self._W2 + self._b2
-        # print(inputs.shape)
         inputs = tf.nn.softmax(inputs)
-        # print(tf.math.reduce_sum(inputs, axis=1))
         return inputs
 
     def train_epoch(self, dataset):
