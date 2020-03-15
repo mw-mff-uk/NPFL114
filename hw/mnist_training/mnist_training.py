@@ -88,11 +88,10 @@ if __name__ == "__main__":
         end_learning_rate=args.learning_rate_final
       )
     elif (args.decay == "exponential"):
-      decay_rate = pow(args.learning_rate_final / args.learning_rate, 1 / decay_steps)
       learning_rate = tf.keras.optimizers.schedules.ExponentialDecay(
         initial_learning_rate=args.learning_rate,
         decay_steps=decay_steps,
-        decay_rate=decay_rate
+        decay_rate=args.learning_rate_final / args.learning_rate
       )
 
     if (args.optimizer == "SGD"):
