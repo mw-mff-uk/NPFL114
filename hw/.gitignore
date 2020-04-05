@@ -2,3 +2,4 @@
 */logs
 */*.out
 */mnist.npz
+*/cifar10_competition.npz
