@@ -1,10 +1,7 @@
 CB-32-3-3-same
-CB-32-3-3-same
 D-0.1
 CB-64-3-3-same
-CB-64-3-3-same
 D-0.2
-CB-128-3-3-same
 CB-128-3-3-same
 D-0.3
 F
