@@ -37,6 +37,30 @@ class Network:
 
         # print(re.split(",(?![^[]*\])", args.cnn))
 
+        def res_net_block(input_data, inner_layers):
+            residual = None
+            for i, layer in enumerate(inner_layers):
+                prev = input_data if residual is None else residual
+                layer = layer.split("-")
+                if (layer[0] == "C"):
+                    residual = tf.keras.layers.Conv2D(int(layer[1]), int(layer[2]), int(layer[3]), layer[4], activation=tf.nn.relu)(prev)
+                elif (layer[0] == "CB"):
+                    residual = tf.keras.layers.Conv2D(int(layer[1]), int(layer[2]), int(layer[3]), layer[4], activation=None, use_bias=False)(prev)
+                    residual = tf.keras.layers.BatchNormalization()(residual)
+                    residual = tf.keras.layers.Activation(tf.nn.relu)(residual)
+                elif (layer[0] == "M"):
+                    residual = tf.keras.layers.MaxPooling2D(int(layer[1]), int(layer[2]))(prev)
+                elif (layer[0] == "F"):
+                    residual = tf.keras.layers.Flatten()(prev)
+                    pass
+                elif (layer[0] == "H"):
+                    residual = tf.keras.layers.Dense(int(layer[1]), activation=tf.nn.relu)(prev)
+                elif (layer[0] == "D"):
+                    residual = tf.keras.layers.Dropout(float(layer[1]))(prev)
+            residual = tf.keras.layers.Add()([residual, input_data])
+            return residual
+
+
         hidden = inputs
         for i, layer in enumerate(list(re.split(",(?![^[]*\])", args.cnn))):
             if (layer[:2] != "R-"):
@@ -48,7 +72,6 @@ class Network:
                     hidden = tf.keras.layers.Conv2D(int(layer[1]), int(layer[2]), int(layer[3]), layer[4], activation=None, use_bias=False)(hidden)
                     hidden = tf.keras.layers.BatchNormalization()(hidden)
                     hidden = tf.keras.layers.Activation(tf.nn.relu)(hidden)
-                    # hidden = tf.keras.layers.Conv2D(int(layer[1]), int(layer[2]), int(layer[3]), layer[4], activation=tf.nn.relu)(hidden)
                 elif (layer[0] == "M"):
                     hidden = tf.keras.layers.MaxPooling2D(int(layer[1]), int(layer[2]))(hidden)
                 elif (layer[0] == "F"):
@@ -59,26 +82,12 @@ class Network:
                 elif (layer[0] == "D"):
                     hidden = tf.keras.layers.Dropout(float(layer[1]))(hidden)
             else:
-                residual = None
-                for i, layer in enumerate(list(layer[3:-1].split(","))):
-                    layer = layer.split("-")
+                inner_layers = list(layer[3:-1].split(","))
+                hidden = res_net_block(hidden, inner_layers)
+
                 
-                    if (layer[0] == "C"):
-                        hidden = tf.keras.layers.Conv2D(int(layer[1]), int(layer[2]), int(layer[3]), layer[4], activation=tf.nn.relu)(hidden)
-                    elif (layer[0] == "CB"):
-                        hidden = tf.keras.layers.Conv2D(int(layer[1]), int(layer[2]), int(layer[3]), layer[4], activation=None, use_bias=False)(hidden)
-                        hidden = tf.keras.layers.BatchNormalization()(hidden)
-                        hidden = tf.keras.layers.Activation(tf.nn.relu)(hidden)
-                        # hidden = tf.keras.layers.Conv2D(int(layer[1]), int(layer[2]), int(layer[3]), layer[4], activation=tf.nn.relu)(hidden)
-                    elif (layer[0] == "M"):
-                        hidden = tf.keras.layers.MaxPooling2D(int(layer[1]), int(layer[2]))(hidden)
-                    elif (layer[0] == "F"):
-                        hidden = tf.keras.layers.Flatten()(hidden)
-                        pass
-                    elif (layer[0] == "H"):
-                        hidden = tf.keras.layers.Dense(int(layer[1]), activation=tf.nn.relu)(hidden)
-                    elif (layer[0] == "D"):
-                        hidden = tf.keras.layers.Dropout(float(layer[1]))(hidden)
+
+                
             
         # Add the final output layer
         outputs = tf.keras.layers.Dense(MNIST.LABELS, activation=tf.nn.softmax)(hidden)
